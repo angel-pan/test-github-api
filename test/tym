@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# Copyright (c) Tym Inc. All rights reserved.
+#
+
+case "$1" in
+	--inspect*) INSPECT="$1"; shift;;
+esac
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	realpath() { [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"; }
+	CURR_DIR=$(dirname $(realpath "$0"))
+	LN_TARGET_PATH=$(readlink "$0")
+	if [[ "$LN_TARGET_PATH" == "" ]]; then
+		ROOT=$CURR_DIR
+	else
+		REL_DIR=$(dirname  "$LN_TARGET_PATH")
+		ROOT=$REL_DIR
+	fi
+else
+	ROOT=$(dirname $(readlink -f $0))
+fi
+
+if [[ $TYM_HOST == "" ]]; then
+	TYM_HOST="vscode.tym.codes"
+fi
+
+if [[ $TYM_PORT == "" ]]; then
+	TYM_PORT="80"
+fi
+
+"$ROOT/node" ${INSPECT:-} "$ROOT/out/vs/tym/main.js" --host $TYM_HOST --port $TYM_PORT "$@"
